@@ -1,0 +1,29 @@
+app = load '/user/hive/warehouse/h1b_project.db/h1b_final/' using PigStorage() as (sr_no:int, case_status:chararray, employer_name:chararray,soc_name:chararray, job_title:chararray,full_time_position:chararray,prevailing_wage:int,year:chararray,worksite:chararray, longitude:double, latitude:double);
+
+
+data = foreach app generate $4,$1;
+
+validdata = filter data by case_status=='CERTIFIED' or case_status=='CERTIFIED-WITHDRAWN';
+
+datagroup = group data by job_title;
+
+validgroup = group validdata by job_title;
+
+totalapp = foreach datagroup generate group as job,COUNT(data) as no;
+
+validapp = foreach validgroup generate group as job,COUNT(validdata) as no;
+
+joindata = join totalapp by $0,validapp by $0;
+
+mydata = foreach joindata generate $0,$1,$3;
+
+final = foreach mydata generate $0,$1,((double)$2*100/(double)$1) as success;
+
+result = filter final by $1>=10000 and $2>70.0;
+
+final_result = order result by $2 desc;
+
+store final_result  into '/project/C' using PigStorage();
+
+
+

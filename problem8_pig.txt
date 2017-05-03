@@ -1,0 +1,66 @@
+app = load '/user/hive/warehouse/h1b_project.db/h1b_final/' using PigStorage() as (sr_no:int, case_status:chararray, employer_name:chararray,soc_name:chararray, job_title:chararray,full_time_position:chararray,prevailing_wage:int,year:chararray,worksite:chararray, longitude:double, latitude:double);
+
+
+
+year_data11 = filter app by year=='2011';
+year_data12 = filter app by year=='2012';
+year_data13 = filter app by year=='2013';
+year_data14 = filter app by year=='2014';
+year_data15 = filter app by year=='2015';
+year_data16 = filter app by year=='2016';
+
+
+data11 = foreach year_data11 generate $4,$5,$6;
+
+--describe data;
+
+
+--data11: {job_title: chararray,full_time_position: chararray,prevailing_wage: double}
+
+
+group_data11 = group data11 by (job_title,full_time_position);
+
+
+--group_data: {group: (job_title: chararray,full_time_position: chararray),data: {(job_title: chararray,full_time_position: chararray,prevailing_wage: double)}}
+
+
+average11 = foreach group_data11 generate group as job,AVG(data11.prevailing_wage) as avg;
+
+final11 = order average11 by avg desc;
+
+store final11 into '/project/prob8/2011' using PigStorage();
+
+
+data12 = foreach year_data12 generate $4,$5,$6;
+group_data12 = group data12 by (job_title,full_time_position);
+average12 = foreach group_data12 generate group as job,AVG(data12.prevailing_wage) as avg;
+final12 = order average12 by avg desc;
+store final12 into '/project/prob8/2012' using PigStorage();
+
+
+data13 = foreach year_data13 generate $4,$5,$6;
+group_data13 = group data13 by (job_title,full_time_position);
+average13 = foreach group_data13 generate group as job,AVG(data13.prevailing_wage) as avg;
+final13 = order average13 by avg desc;
+store final13 into '/project/prob8/2013' using PigStorage();
+
+data14 = foreach year_data14 generate $4,$5,$6;
+group_data14 = group data14 by (job_title,full_time_position);
+average14 = foreach group_data14 generate group as job,AVG(data14.prevailing_wage) as avg;
+final14 = order average14 by avg desc;
+store final14 into '/project/prob8/2014' using PigStorage();
+
+
+data15 = foreach year_data15 generate $4,$5,$6;
+group_data15 = group data15 by (job_title,full_time_position);
+average15 = foreach group_data15 generate group as job,AVG(data15.prevailing_wage) as avg;
+final15 = order average15 by avg desc;
+store final15 into '/project/prob8/2015' using PigStorage();
+
+data16 = foreach year_data16 generate $4,$5,$6;
+group_data16 = group data16 by (job_title,full_time_position);
+average16 = foreach group_data16 generate group as job,AVG(data16.prevailing_wage) as avg;
+final16 = order average16 by avg desc;
+store final16 into '/project/prob8/2016' using PigStorage();
+
+

@@ -1,0 +1,17 @@
+use h1b_final;
+
+/*
+create table h1b_final_partition (s_no int,case_status string,employer_name string,soc_name string,job_title string,full_time_position string,prevailing_wage int,
+worksite string,longitute double,latitute double) partitioned by(year string)
+ ROW FORMAT delimited fields terminated by '\t' stored as textfile;
+
+from h1b_final INSERT OVERWRITE table h1b_final_partition PARTITION(year) select s_no,case_status,employer_name,soc_name,job_title,
+full_time_position,prevailing_wage,worksite,longitute,latitute,year DISTRIBUTE By year;
+
+create view top10jobs as select job_title,year,count(*) as total from h1b_final_partition group by year,job_title 
+sort by year,total desc;
+
+*/
+
+INSERT OVERWRITE DIRECTORY '/project/prob5' ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' select year,job_title,total,rank from(select year,job_title,rank() over (partition by year order by total desc) as rank,total from top10jobs) ranked_table 
+where ranked_table.rank <=10;

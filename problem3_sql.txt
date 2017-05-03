@@ -1,0 +1,51 @@
+use h1b_project;
+
+/*
+CREATE TABLE h1b_applications(s_no int,case_status string, employer_name string, soc_name string, job_title string, full_time_position string,prevailing_wage int,year string, worksite string, longitute double, latitute double )
+ 
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+ 
+WITH SERDEPROPERTIES (
+ 
+"separatorChar" = ",",
+ 
+"quoteChar" = "\""
+ 
+) STORED AS TEXTFILE;
+
+load data local inpath '/home/kiran/Documents/datasets/h1b.csv' into table h1b_applications;
+
+*/
+
+
+
+
+INSERT OVERWRITE DIRECTORY '/project/prob3' ROW FORMAT delimited fields terminated by ',' select soc_name,count(soc_name) as cnt from h1b_final where job_title LIKE '%DATA SCIENTIST%' group by soc_name order by cnt desc;
+
+/*
+----------------------------------------------------------------------------------------
+output:---
+INDUSTRY	no_of_jobs
+
+STATISTICIANS	649
+COMPUTER AND INFORMATION RESEARCH SCIENTISTS	500
+OPERATIONS RESEARCH ANALYSTS	426
+Computer and Information Research Scientists	208
+COMPUTER OCCUPATIONS, ALL OTHER	179
+Statisticians	152
+SOFTWARE DEVELOPERS, APPLICATIONS	148
+MATHEMATICIANS	147
+COMPUTER SYSTEMS ANALYSTS	135
+Operations Research Analysts	124
+SOFTWARE DEVELOPERS, SYSTEMS SOFTWARE	61
+Software Developers, Applications	59
+Computer Occupations, All Other	45
+Computer Systems Analysts	30
+BIOLOGICAL SCIENTISTS, ALL OTHER	27
+Software Developers, Systems Software	22
+Database Administrators	17
+MARKET RESEARCH ANALYSTS AND MARKETING SPECIALISTS	15
+FINANCIAL SPECIALISTS, ALL OTHER	15
+Mathematicians	13
+NA	12
+*/

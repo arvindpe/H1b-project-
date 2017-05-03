@@ -1,0 +1,117 @@
+package problem6;
+
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+
+
+public class GraphPattern 
+{
+
+	public static class GraphMapper extends Mapper<LongWritable,Text,Text,Text>
+		{
+		public void map(LongWritable key,Text value,Context context) throws IOException,InterruptedException
+		{
+		    	   
+		    	  try
+		    	  {
+		    			
+
+		    			String str[] =value.toString().split("\t");
+		    			String year=str[7];
+		    			String case_status=str[1];
+		    		
+		    			context.write(new Text(year),new Text(case_status));
+
+		    	}
+		    		catch(Exception e)
+		    		{
+		    		System.out.println(e.getMessage());
+		    		}
+		      }
+		   }
+
+		 
+	public static class GraphReducer extends Reducer<Text,Text,Text,Text>
+	{
+		
+		public void reduce(Text key,Iterable<Text> values,Context context) throws IOException, InterruptedException
+		{
+		
+			int total_application=0,certified=0,certified_withdrawn=0,withdrawn=0,denied=0;
+			double certified_perct=0,certified_withdrawn_perct=0,withdrawn_perct,denied_perct;
+			for(Text val:values)
+			{
+				total_application++;
+		
+				
+				String case_status=val.toString();
+				if(case_status.equalsIgnoreCase("CERTIFIED"))
+				{
+					certified++;
+				}
+				else if(case_status.equalsIgnoreCase("CERTIFIED-WITHDRAWN"))
+				{
+					certified_withdrawn++;
+				}
+				else if(case_status.equalsIgnoreCase("WITHDRAWN"))
+				{
+					withdrawn++;
+				}
+				else
+				{
+					denied++;
+				}
+			}
+		
+			certified_perct=((double)certified*100)/(double)total_application;
+			certified_withdrawn_perct=((double)certified_withdrawn*100)/(double)total_application;
+			withdrawn_perct=((double)withdrawn*100)/(double)total_application;
+			denied_perct=((double)denied*100)/(double)total_application;
+			
+			String myapplication=String.format("%d",total_application);
+			String string_certified_perct=String.format("%.2f",certified_perct);
+			String string_certified_withdrawn_perct=String.format("%.2f",certified_withdrawn_perct);
+			String string_withdrawn_perct=String.format("%.2f",withdrawn_perct);
+			String string_denied_perct=String.format("%.2f",denied_perct);
+
+			String myvalue=myapplication+"\t"+certified+"\t"+string_certified_perct+"\t"+certified_withdrawn+"\t"+string_certified_withdrawn_perct+"\t"+withdrawn+"\t"+string_withdrawn_perct+"\t"+denied+"\t"+string_denied_perct;
+		
+		//Print the value in the format [year,total_app,certified_app,certified %,certified_withdrawn_app,certified_withdrawn %,withdrawn_app,withdrawn %,denied_app,denied %]
+		
+			context.write(new Text(key),new Text(myvalue));
+			}
+	}
+	
+	public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException
+	{
+	Configuration conf= new Configuration();
+	Job job=Job.getInstance(conf);
+	job.setJarByClass(GraphPattern.class);
+	job.setJobName("find the count and percentage of each case status for each year");
+	
+	job.setMapperClass(GraphMapper.class);
+	job.setReducerClass(GraphReducer.class);
+
+	job.setMapOutputKeyClass(Text.class);
+	job.setMapOutputValueClass(Text.class);
+
+	job.setOutputKeyClass(Text.class);
+	job.setOutputValueClass(Text.class);
+
+	FileInputFormat.addInputPath(job,new Path(args[0]));
+	  FileOutputFormat.setOutputPath(job,new Path(args[1]));
+	  System.exit(job.waitForCompletion(true)?0:1);
+	
+	}
+	
+}

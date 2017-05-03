@@ -1,0 +1,1 @@
+sqoop export --connect jdbc:mysql://localhost/h1b --username root --password cloudera --table problem10 --export-dir /project/prob10 --input-fields-terminated-by '\t' --mysql-delimiters -m 1;

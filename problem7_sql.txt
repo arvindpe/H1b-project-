@@ -1,0 +1,13 @@
+--create database h1b_project;
+use h1b_project;
+
+/*
+create table h1b_application (s_no int,case_status string,employer_name string,soc_name string,job_title string,full_time_position string,prevailing_wage double,year string,work_station string,longitute double,latitute double) ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde' WITH SERDEPROPERTIES ("separator"=",","quoteChar"="\"") stored as textfile;
+
+LOAD DATA LOCAL INPATH '/home/hduser/h1b.csv' OVERWRITE INTO TABLE h1b_application;
+
+*/
+
+INSERT OVERWRITE DIRECTORY '/project/prob7' ROW FORMAT DELIMITED FIELDS TERMINATED by '\t' select year,count(*) from h1b_final group by year order by year;
+
+/*

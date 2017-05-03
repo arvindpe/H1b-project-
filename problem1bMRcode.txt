@@ -1,0 +1,173 @@
+package problem1b;
+import java.io.IOException;
+import java.util.TreeMap;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+public class JobGrowth
+
+{
+		public static class GrowthMapper extends Mapper<LongWritable,Text,Text,Text>
+		{
+		public void map(LongWritable key,Text value,Context context) throws IOException,InterruptedException
+		{
+			try
+			{
+				String str[] =value.toString().split("\t");
+
+				String job_title=str[4];
+				String year=str[7];	
+				context.write(new Text(job_title),new Text(year));
+				
+			}
+			catch(Exception e)
+			{
+			System.out.println(e.getMessage());
+			}
+		}
+		
+		}
+		
+		
+		
+public static class GrowthReducer extends Reducer<Text,Text,NullWritable,Text>
+		{
+			TreeMap<Double,Text> topMap=new TreeMap<Double,Text>();
+			
+			public void reduce(Text key,Iterable<Text> values,Context context) throws IOException, InterruptedException
+			{
+			
+				int count11=0,count12=0,count13=0,count14=0,count15=0,count16=0;
+				double cycle1=0,cycle2=0,cycle3=0,cycle4=0,cycle5=0,average=0;
+				
+				for(Text val:values)
+				{
+									
+					String year=val.toString();
+					if(year.equals("2011"))
+					{
+						count11++;
+					}
+					 else if(year.equals("2012"))
+					{
+						count12++;
+					}
+					 else if(year.equals("2013"))
+					{
+						count13++;
+					}
+					else if(year.equals("2014"))
+					{
+						count14++;
+					}
+					 else if(year.equals("2015"))
+					{
+						count15++;
+					}
+					 else if(year.equals("2016"))
+					{
+						count16++;
+					}
+					
+				}
+			
+				if(count11!=0)
+				{
+					cycle1=(double)(count12-count11)*100/(double)count11;
+				}
+				else
+				{
+					cycle1=0;
+				}
+				if(count12!=0)
+				{
+					cycle2=(double)(count13-count12)*100/(double)count12;
+				}
+				else
+				{
+					cycle2=0;
+				}
+				if(count13!=0)
+				{
+					cycle3=(double)(count14-count13)*100/(double)count13;
+				}
+				else
+				{
+					cycle3=0;
+				}
+				if(count14!=0)
+				{
+					cycle4=(double)(count15-count14)*100/(double)count14;
+				}
+				else
+				{
+					cycle4=0;
+				}
+				if(count15!=0)
+				{
+					cycle5=(double)(count16-count15)*100/(double)count15;
+				}
+				else
+				{
+					cycle5=0;
+				}
+				
+				average=(cycle1+cycle2+cycle3+cycle4+cycle5)/5;
+				
+				String myaverage=String.format("%.2f", average);
+				String total11=String.format("%d", count11);
+				String total12=String.format("%d", count12);
+				String total13=String.format("%d", count13);
+				String total14=String.format("%d", count14);
+				String total15=String.format("%d", count15);
+				String total16=String.format("%d", count16);
+				
+				String mykey=key.toString();
+				
+				String myvalue =mykey+"\t"+total11+"\t"+total12+"\t"+total13+"\t"+total14+"\t"+total15+"\t"+total16+"\t"+myaverage;
+				
+				topMap.put(new Double(average),new Text(myvalue));
+				if(topMap.size() >5)
+				{
+					topMap.remove(topMap.firstKey());
+				}
+					
+		}
+			public void cleanup(Context context) throws IOException, InterruptedException
+			{
+				for(Text t:topMap.descendingMap().values()) 
+				{
+					context.write(NullWritable.get(),new Text(t));
+				}
+			}
+	}
+		public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException
+		{
+		Configuration conf= new Configuration();
+		Job job=Job.getInstance(conf);
+		job.setJarByClass(JobGrowth.class);
+		
+		job.setMapperClass(GrowthMapper.class);
+		job.setReducerClass(GrowthReducer.class);
+
+		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputValueClass(Text.class);
+
+		job.setOutputKeyClass(NullWritable.class);
+		job.setOutputValueClass(Text.class);
+
+		FileInputFormat.addInputPath(job,new Path(args[0]));
+		  FileOutputFormat.setOutputPath(job,new Path(args[1]));
+		  System.exit(job.waitForCompletion(true)?0:1);
+		
+		}
+}
+
+
